@@ -1,5 +1,4 @@
-import { useState } from "react"
-import GridControls from "./GridControls"
+import { useState, useEffect } from "react"
 import Line from "./Line"
 
 function classNames(...classes: string[]) {
@@ -7,28 +6,24 @@ function classNames(...classes: string[]) {
 }
 
 interface GridProps {
-  onWin?: (winner: string, resetGrid: () => void) => void;
-  onPlayerChange?: (player: 'X' | 'O') => void;
-  onFirstMove?: () => void;
-  isGameOver?: boolean; // Add this prop
+  size: number // 🔹 grid size comes from App
+  onWin?: (winner: string, resetGrid: () => void) => void
+  onPlayerChange?: (player: 'X' | 'O') => void
+  onFirstMove?: () => void
+  isGameOver?: boolean
 }
 
-function Grid ({ onWin, onPlayerChange, onFirstMove, isGameOver }: GridProps) {
+function Grid ({ size, onWin, onPlayerChange, onFirstMove, isGameOver }: GridProps) {
   const [player, setPlayer] = useState<'X' | 'O'>('X')
-  const [size, setSize] = useState(3)
-  const [selectedSize, setSelectedSize] = useState(3)
-  const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
-  const [endPoint, setEndPoint] = useState({ x: 0, y: 0 });
-  const [matrix, setMatrix] = useState<string[][]>(Array.from({ length: size }, () => Array(size).fill('')))
+  const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
+  const [endPoint, setEndPoint] = useState({ x: 0, y: 0 })
+  const [matrix, setMatrix] = useState<string[][]>(
+    Array.from({ length: size }, () => Array(size).fill(''))
+  )
 
-  const handleSelectChange = (value: number) => {
-    setSelectedSize(value)
-  }
-
-  const handleApply = () => {
-    setSize(selectedSize)
-    setMatrix(Array.from({ length: selectedSize }, () => Array(selectedSize).fill('')))
-  }
+  useEffect(() => {
+    setMatrix(Array.from({ length: size }, () => Array(size).fill('')))
+  }, [size])
 
   const handleClickCell = (row: number, col: number) => {
     if (isGameOver) return // Prevent moves after win/draw
@@ -42,7 +37,7 @@ function Grid ({ onWin, onPlayerChange, onFirstMove, isGameOver }: GridProps) {
     if (cell && cell.innerText === '') {
       cell.innerText = player
       cell!.classList.add(player === 'X' ? 'text-black-500' : 'text-pink-500')
-      if (matrix.flat().filter(c => c !== '').length === 0 && onFirstMove) onFirstMove();
+      if (matrix.flat().filter(c => c !== '').length === 0 && onFirstMove) onFirstMove()
     } else {
       alert('Cell is already occupied or not found')
       return
@@ -91,7 +86,6 @@ function Grid ({ onWin, onPlayerChange, onFirstMove, isGameOver }: GridProps) {
     }
     removeLine()
     setPlayer('X')
-    // setMoveCount(0) // Remove moveCount reset
   }
 
   const drawLine = (cells: number[]) => {
@@ -190,12 +184,7 @@ function Grid ({ onWin, onPlayerChange, onFirstMove, isGameOver }: GridProps) {
       <table className='border-collapse border-black border-3 h-auto w-auto divide-y-3 divide-solid divide-black'>
         <tbody>{buildGrid()}</tbody>
       </table>
-      <GridControls
-        selectedSize={selectedSize}
-        onSelectChange={handleSelectChange}
-        onApply={handleApply}
-      />
-      <Line startPoint={startPoint} endPoint={endPoint}/>
+      <Line startPoint={startPoint} endPoint={endPoint} winner={player}/>
     </>
   )
 }

@@ -3,6 +3,7 @@ import Grid from './Grid.tsx'
 import MessageBox from './MessageBox.tsx'
 import NewGameButton from './NewGameButton.tsx'
 import TimeTracker from './TimeTracker.tsx'
+import GridControls from './GridControls.tsx'
 import { useState, useRef } from 'react'
 
 function formatTime(ms: number) {
@@ -24,6 +25,11 @@ function App() {
   const [isGameOver, setIsGameOver] = useState(false)
   const [xTime, setXTime] = useState(0)
   const [oTime, setOTime] = useState(0)
+  const [xWins, setXWins] = useState(0)
+  const [oWins, setOWins] = useState(0)
+  const [draws, setDraws] = useState(0)
+  const [appliedSize, setAppliedSize] = useState(3)  // grid actually uses this
+  const [pendingSize, setPendingSize] = useState(3)  // dropdown selection
 
   // handler to show win or draw message
   const handleWin = (winner: string, resetGrid: () => void) => {
@@ -33,10 +39,13 @@ function App() {
     setTimeout(() => {
       let timeMsg = ''
       if (winner === 'Draw') {
+        setDraws(prev => prev + 1)
         timeMsg = `Time spent: ${formatTime(xTime + oTime)}`
       } else if (winner === 'X') {
+        setXWins(prev => prev + 1)
         timeMsg = `Time spent: ${formatTime(xTime)}`
       } else if (winner === 'O') {
+        setOWins(prev => prev + 1)
         timeMsg = `Time spent: ${formatTime(oTime)}`
       }
       setMessage(
@@ -60,6 +69,7 @@ function App() {
     setIsGameOver(false)
     setXTime(0)
     setOTime(0)
+    setAppliedSize(pendingSize)  // apply the new size on new game
   }
 
   const handlePlayerChange = (player: 'X' | 'O') => {
@@ -76,13 +86,18 @@ function App() {
     else setOTime(ms)
   }
 
+  const handleApplySize = () => {
+    setPendingSize(pendingSize)
+  }
+
   return (
     <>
       <div className='flex flex-col items-center justify-baseline h-screen w-screen gap-8'>
-        <h1 className='text-5xl mt-8'>Tic-tac-toe</h1>
-        <div className='flex flex-row items-center justify-center gap-8'>
+        <h1 className='text-5xl mt-8'>Tic-tac-toe</h1> {/* title */}
+        <div className='flex flex-row items-center justify-center gap-8'> {/* main game area */}
           <div className="flex flex-col items-center gap-4">
             <span className="text-2xl font-bold text-black">Player X</span>
+            <span className="text-lg">Wins: {xWins}</span>
             <TimeTracker
               isActive={currentPlayer === 'X'}
               resetKey={resetKey}
@@ -93,16 +108,25 @@ function App() {
             />
           </div>
           <div className='flex flex-col items-center gap-4'>
+            <span className="text-lg">Draws: {draws}</span>
             <Grid
+              size={appliedSize}
               onWin={handleWin}
               onPlayerChange={handlePlayerChange}
               onFirstMove={handlePlayerMove}
               isGameOver={isGameOver}
             />
+            <GridControls
+              pendingSize={pendingSize}
+              onSelectChange={setPendingSize}
+              onApply={handleApplySize}
+            />
             <NewGameButton onClick={handleNewGame} />
+            
           </div>
           <div className="flex flex-col items-center gap-4">
             <span className="text-2xl font-bold text-pink-500">Player O</span>
+            <span className="text-lg">Wins: {oWins}</span>
             <TimeTracker
               isActive={currentPlayer === 'O'}
               resetKey={resetKey}

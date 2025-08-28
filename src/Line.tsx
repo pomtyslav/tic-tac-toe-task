@@ -1,16 +1,16 @@
 interface LineProps {
-  startPoint: { x: number; y: number };
-  endPoint: { x: number; y: number };
-  winner?: 'X' | 'O';
+  startPoint: { x: number; y: number }
+  endPoint: { x: number; y: number }
+  winner?: 'X' | 'O'
 }
 
 function Line ({startPoint, endPoint, winner}: LineProps) {
   const strokeClass =
     winner === 'X'
-      ? 'stroke-black-500'
+      ? 'stroke-black'
       : winner === 'O'
       ? 'stroke-pink-500'
-      : 'stroke-black';
+      : 'stroke-blue-500';
 
   return (
     <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">

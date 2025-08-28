@@ -1,7 +1,7 @@
-import React from "react";
+import React from "react"
 
 interface OkButtonProps {
-  onClick: () => void;
+  onClick: () => void
 }
 
 const OkButton: React.FC<OkButtonProps> = ({ onClick }) => (
@@ -13,4 +13,4 @@ const OkButton: React.FC<OkButtonProps> = ({ onClick }) => (
   </button>
 );
 
-export default OkButton;
+export default OkButton
