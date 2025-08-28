@@ -108,6 +108,7 @@ function App() {
             />
           </div>
           <div className='flex flex-col items-center gap-4'>
+            <div className='text-xl'>Total games: {draws+xWins+oWins}</div>
             <span className="text-lg">Draws: {draws}</span>
             <Grid
               size={appliedSize}
@@ -122,7 +123,6 @@ function App() {
               onApply={handleApplySize}
             />
             <NewGameButton onClick={handleNewGame} />
-            
           </div>
           <div className="flex flex-col items-center gap-4">
             <span className="text-2xl font-bold text-pink-500">Player O</span>
