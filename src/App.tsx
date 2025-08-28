@@ -1,14 +1,13 @@
 import './App.css'
-import Tile from './Tile.tsx'
+import Grid from './Grid.tsx'
 
 function App() {
 
   return (
     <>
-    <div className='flex items-center justify-center h-screen w-screen'>
-      <Tile />
+    <div className='flex items-center justify-center h-screen w-screen flex-row gap-4'>
+      <Grid />
     </div>
-      
     </>
   )
 }
