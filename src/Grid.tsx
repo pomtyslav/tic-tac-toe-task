@@ -6,13 +6,19 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-function Grid () {
+interface GridProps {
+  onWin?: (winner: string, resetGrid: () => void) => void;
+  onPlayerChange?: (player: 'X' | 'O') => void;
+  onFirstMove?: () => void;
+  isGameOver?: boolean; // Add this prop
+}
+
+function Grid ({ onWin, onPlayerChange, onFirstMove, isGameOver }: GridProps) {
   const [player, setPlayer] = useState<'X' | 'O'>('X')
   const [size, setSize] = useState(3)
   const [selectedSize, setSelectedSize] = useState(3)
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
   const [endPoint, setEndPoint] = useState({ x: 0, y: 0 });
-  // matrix to track moves
   const [matrix, setMatrix] = useState<string[][]>(Array.from({ length: size }, () => Array(size).fill('')))
 
   const handleSelectChange = (value: number) => {
@@ -25,6 +31,8 @@ function Grid () {
   }
 
   const handleClickCell = (row: number, col: number) => {
+    if (isGameOver) return // Prevent moves after win/draw
+
     if (row < 1 || row > size || col < 1 || col > size) {
       console.error('Invalid cell position')
       return
@@ -33,10 +41,11 @@ function Grid () {
 
     if (cell && cell.innerText === '') {
       cell.innerText = player
-      setPlayer(player === 'X' ? 'O' : 'X') 
       cell!.classList.add(player === 'X' ? 'text-black-500' : 'text-pink-500')
+      if (matrix.flat().filter(c => c !== '').length === 0 && onFirstMove) onFirstMove();
     } else {
       alert('Cell is already occupied or not found')
+      return
     }
 
     const newMatrix = matrix.map((r, rowIndex) =>
@@ -45,21 +54,28 @@ function Grid () {
 
     setMatrix(newMatrix)
 
-    drawLine(checkWin(newMatrix, player))
+    const winResult = checkWin(newMatrix, player)
+    setTimeout(() => drawLine(winResult), 500)
+    if (winResult[0] !== -3 && onWin) {
+      onWin(player, resetGrid)
+    } else if (winResult[0] === -3 && newMatrix.flat().every(cell => cell !== '')) {
+      // draw condition
+      if (onWin) onWin('Draw', resetGrid)
+    } else {
+      const nextPlayer = player === 'X' ? 'O' : 'X'
+      setPlayer(nextPlayer)
+      if (onPlayerChange) onPlayerChange(nextPlayer)
+    }
   }
 
   const checkWin = (grid: string[][], player: string): number[] => {
-    // Check rows and columns
     for (let i = 0; i < size; i++) {
-      if (grid[i].every(cell => cell === player)) return [i, 10] // row win
-      if (grid.every(row => row[i] === player)) return [10, i] // column win
+      if (grid[i].every(cell => cell === player)) return [i, 10]
+      if (grid.every(row => row[i] === player)) return [10, i]
     }
-
-    // Check diagonals
-    if (grid.every((row, i) => row[i] === player)) return [-1] // main diagonal win
-    if (grid.every((row, i) => row[size - 1 - i] === player)) return [-2] // anti diagonal win
-
-    return [-3, -3] // no win
+    if (grid.every((row, i) => row[i] === player)) return [-1]
+    if (grid.every((row, i) => row[size - 1 - i] === player)) return [-2]
+    return [-3, -3]
   }
 
   const resetGrid = () => {
@@ -73,7 +89,9 @@ function Grid () {
         }
       }
     }
+    removeLine()
     setPlayer('X')
+    // setMoveCount(0) // Remove moveCount reset
   }
 
   const drawLine = (cells: number[]) => {
@@ -81,7 +99,6 @@ function Grid () {
     let cellEnd, cellEndX, cellEndY
     // lose condition
     if (cells[0] == -3) return ''
-    
     // main diagonal condition
     if (cells[0] == -1) {
       cellStart = document.getElementById('cell-1-1')
@@ -96,7 +113,7 @@ function Grid () {
       setStartPoint({ x: cellStartX, y: cellStartY})
       setEndPoint({ x: cellEndX, y: cellEndY})
     }
-
+    // anti diagonal condition
     if (cells[0] == -2) {
       cellStart = document.getElementById(`cell-1-${size}`)
       cellEnd = document.getElementById(`cell-${size}-1`)
@@ -110,7 +127,7 @@ function Grid () {
       setStartPoint({ x: cellStartX, y: cellStartY})
       setEndPoint({ x: cellEndX, y: cellEndY})
     }
-
+    // row win condition
     if (cells[1] == 10) {
       cellStart = document.getElementById(`cell-${cells[0]+1}-1`)
       cellEnd = document.getElementById(`cell-${cells[0]+1}-${size}`)
@@ -124,7 +141,7 @@ function Grid () {
       setStartPoint({ x: cellStartX, y: cellStartY})
       setEndPoint({ x: cellEndX, y: cellEndY})
     }
-
+    // column win condition
     if (cells[0] == 10) {
       cellStart = document.getElementById(`cell-1-${cells[1]+1}`)
       cellEnd = document.getElementById(`cell-${size}-${cells[1]+1}`)
@@ -138,6 +155,11 @@ function Grid () {
       setStartPoint({ x: cellStartX, y: cellStartY})
       setEndPoint({ x: cellEndX, y: cellEndY})
     }
+  }
+
+  const removeLine = () => {
+    setStartPoint({ x: 0, y: 0})
+    setEndPoint({ x: 0, y: 0})
   }
 
   const buildGrid = () => {
